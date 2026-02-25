@@ -1,0 +1,20 @@
+[project]
+name = "runpod-pods-demo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv>=1.2.1",
+    "runpod>=1.8.1",
+]
+
+[project.scripts]
+runpod-pods = "runpod_pods_demo.list_pods:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["runpod_pods_demo"]
+
+[tool.uv]
+package = true
