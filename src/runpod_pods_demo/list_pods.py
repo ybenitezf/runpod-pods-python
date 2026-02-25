@@ -61,7 +61,7 @@ def print_pods_table(pods: list[dict[str, Any]]) -> None:
     for pod in pods:
         uptime_seconds = pod.get("runtime", {}).get("uptimeInSeconds", 0)
         uptime = format_uptime(uptime_seconds) if uptime_seconds else "N/A"
-        status = pod.get("status", "N/A")
+        status = pod.get("desiredStatus", pod.get("status", "N/A"))
 
         print(
             f"{pod.get('name', 'N/A'):<{name_width}} "
