@@ -4,8 +4,9 @@ import sys
 from typing import Any, Optional, cast
 
 import runpod
+from dotenv import load_dotenv
 
-from runpod_pods_demo.create_pod import create_pod, load_api_key
+from runpod_pods_demo.create_pod import create_pod, load_api_key, load_pod_config
 from runpod_pods_demo.terminate_pod import PodNotFoundError, terminate_pod
 from runpod_pods_demo.wait_for_pod import (
     PodFailedError,
@@ -31,19 +32,31 @@ def get_pods() -> list[dict[str, Any]]:
 def main() -> int:
     """Run the complete pod lifecycle demo.
 
-    Creates a pod, waits for it to be ready, lists all pods,
-    and terminates the created pod.
+    Creates a pod with configuration from .env, waits for it to be ready,
+    prompts for user verification, lists all pods, and terminates the pod.
     """
     print("=" * 60)
     print("RunPod Pod Lifecycle Demo")
     print("=" * 60)
 
+    load_dotenv()
+
     pod_id: Optional[str] = None
 
-    # Step 1: Create a pod
     print("\n[1/4] Creating pod...")
     try:
-        pod = create_pod()
+        config = load_pod_config()
+        pod = create_pod(
+            name="pod-lifecycle-demo",
+            gpu_type_id=config.get("gpu_type_id", "NVIDIA A40"),
+            image_name=config.get("image_name", "pytorch/pytorch:latest"),
+            gpu_count=config.get("gpu_count", 1),
+            container_disk_in_gb=config.get("container_disk_in_gb"),
+            volume_in_gb=config.get("volume_in_gb"),
+            volume_mount_path=config.get("volume_mount_path"),
+            ports=config.get("ports"),
+            env=config.get("env"),
+        )
         pod_id = pod.get("id")
         if not pod_id:
             raise ValueError("Pod creation did not return a pod ID")
@@ -54,17 +67,16 @@ def main() -> int:
         print(f"  Error creating pod: {e}", file=sys.stderr)
         return 1
 
-    # Step 2: Wait for pod to be ready
     print("\n[2/4] Waiting for pod to reach RUNNING state...")
     try:
-        running_pod = wait_for_pod_ready(pod_id)  # type: ignore[arg-type]
+        running_pod = wait_for_pod_ready(pod_id)
         print("  Pod is now RUNNING!")
         print(f"  Pod ID: {running_pod.get('id')}")
     except PodTimeoutError as e:
         print(f"  Timeout waiting for pod: {e}")
         print("  Cleaning up (terminating pod)...")
         try:
-            terminate_pod(pod_id)  # type: ignore[arg-type]
+            terminate_pod(pod_id)
             print("  Pod terminated.")
         except Exception as cleanup_error:
             print(
@@ -76,7 +88,7 @@ def main() -> int:
         print(f"  Pod failed to start: {e}")
         print("  Cleaning up (terminating pod)...")
         try:
-            terminate_pod(pod_id)  # type: ignore[arg-type]
+            terminate_pod(pod_id)
             print("  Pod terminated.")
         except Exception as cleanup_error:
             print(
@@ -98,21 +110,19 @@ def main() -> int:
                 )
         return 1
 
-    # Step 3: List all pods
-    print("\n[3/4] Listing all pods...")
+    print("\n[3/4] User verification...")
+    print("  Pod is ready! Please check the RunPod console to verify.")
+    print("  Press Enter to continue with termination and cleanup...")
     try:
-        pods = get_pods()
-        print(f"  Found {len(pods)} pod(s):")
-        for p in pods:
-            status = p.get("desiredStatus", p.get("status", "UNKNOWN"))
-            print(f"    - {p.get('name')} ({p.get('id')}): {status}")
-    except Exception as e:
-        print(f"  Warning: Failed to list pods: {e}", file=sys.stderr)
+        input()
+    except KeyboardInterrupt:
+        print("\n  Aborted by user.")
+        print("  Please manually terminate the pod later.")
+        return 1
 
-    # Step 4: Terminate the pod
-    print(f"\n[4/4] Terminating pod {pod_id}...")
+    print("\n[4/4] Terminating pod...")
     try:
-        terminate_pod(pod_id)  # type: ignore[arg-type]
+        terminate_pod(pod_id)
         print("  Pod terminated successfully!")
     except PodNotFoundError:
         print("  Warning: Pod not found (may have already been terminated)")
