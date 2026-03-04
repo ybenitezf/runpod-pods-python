@@ -19,7 +19,7 @@ def get_gpus() -> List[dict[str, Any]]:
     load_dotenv()
     api_key = runpod.api_key
     if not api_key:
-        from runpod_pods_demo.create_template import load_api_key
+        from runpod_pods_demo.create_pod import load_api_key
 
         api_key = load_api_key()
         if not api_key:

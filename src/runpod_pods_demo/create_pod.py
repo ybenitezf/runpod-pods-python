@@ -17,7 +17,7 @@ DEFAULT_CONTAINER_DISK_IN_GB = 10
 DEFAULT_VOLUME_IN_GB = 0
 DEFAULT_VOLUME_MOUNT_PATH = "/workspace"
 DEFAULT_PORTS = ""
-DEFAULT_TEMPLATE_ENV: dict[str, str] = {}
+DEFAULT_POD_ENV: dict[str, str] = {}
 
 
 def load_api_key() -> Optional[str]:
@@ -62,14 +62,14 @@ def load_pod_config() -> dict[str, Any]:
     ports = os.getenv("PORTS")
     config["ports"] = ports if ports else DEFAULT_PORTS
 
-    template_env = os.getenv("TEMPLATE_ENV")
-    if template_env:
+    pod_env = os.getenv("POD_ENV")
+    if pod_env:
         try:
-            config["env"] = json.loads(template_env)
+            config["env"] = json.loads(pod_env)
         except json.JSONDecodeError:
-            config["env"] = DEFAULT_TEMPLATE_ENV
+            config["env"] = DEFAULT_POD_ENV
     else:
-        config["env"] = DEFAULT_TEMPLATE_ENV
+        config["env"] = DEFAULT_POD_ENV
 
     return config
 
