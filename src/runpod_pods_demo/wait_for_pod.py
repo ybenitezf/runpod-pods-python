@@ -6,21 +6,10 @@ from typing import Any, cast
 
 import runpod
 from runpod_pods_demo.create_pod import load_api_key
+from runpod_pods_demo.exceptions import PodTimeoutError, PodFailedError
 
 POLL_INTERVAL_SECONDS = 5
 TIMEOUT_SECONDS = 600
-
-
-class PodTimeoutError(Exception):
-    """Raised when pod fails to reach RUNNING state within timeout."""
-
-    pass
-
-
-class PodFailedError(Exception):
-    """Raised when pod enters a failed terminal state."""
-
-    pass
 
 
 def wait_for_pod_ready(

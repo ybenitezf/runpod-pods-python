@@ -5,12 +5,7 @@ from typing import Any, cast
 
 import runpod
 from runpod_pods_demo.create_pod import load_api_key
-
-
-class PodNotFoundError(Exception):
-    """Raised when the specified pod does not exist."""
-
-    pass
+from runpod_pods_demo.exceptions import PodNotFoundError
 
 
 def terminate_pod(pod_id: str) -> dict[str, Any]:
